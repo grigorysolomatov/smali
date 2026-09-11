@@ -32,7 +32,8 @@
       redraw: 'Redraw',
       editNote: 'Edit note',
       edit: 'Move',
-      delete: 'Delete',
+      deleteMarker: 'Delete marker',
+      deleteLine: 'Delete line',
       stale: 'Stale',
       live: 'Live',
     },
@@ -66,7 +67,8 @@
       redraw: 'Teikna aftur',
       editNote: 'Breyta athugasemd',
       edit: 'Færa',
-      delete: 'Eyða',
+      deleteMarker: 'Eyða merki',
+      deleteLine: 'Eyða línu',
       stale: 'Úrelt',
       live: 'Nýtt',
     },
@@ -100,7 +102,8 @@
       redraw: 'Tegn igen',
       editNote: 'Redigér note',
       edit: 'Flyt',
-      delete: 'Slet',
+      deleteMarker: 'Slet mærke',
+      deleteLine: 'Slet linje',
       stale: 'Forældet',
       live: 'Aktuel',
     },
@@ -249,18 +252,23 @@
       isDrawing ? beginDrawing(item) : editMarker(item);
     };
     box.append(edit);
-    if (isDrawing) {
-      const del = element('button', tr('delete'));
-      del.onclick = () => {
-        queue('/api/drawings', {
-          id: item.id,
-          version: item.version,
-          deleted: true,
-        });
-        map.closePopup();
-      };
-      box.append(del);
-    }
+    const del = element('button', tr(isDrawing ? 'deleteLine' : 'deleteMarker'));
+    del.className = 'delete-item danger';
+    del.disabled = pending.some((op) =>
+      op.url === (isDrawing ? '/api/drawings' : '/api/markers') &&
+      op.body.id === item.id && op.body.deleted,
+    );
+    del.onclick = () => {
+      if (del.disabled) return;
+      del.disabled = true;
+      map.closePopup();
+      queue(isDrawing ? '/api/drawings' : '/api/markers', {
+        id: item.id,
+        version: item.version,
+        deleted: true,
+      });
+    };
+    box.append(del);
     return box;
   }
   function render() {

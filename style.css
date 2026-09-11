@@ -56,6 +56,11 @@ button {
   background: #fff;
   font-weight: 650;
 }
+.delete-item {
+  border-color: #b91c1c;
+  color: #fff;
+  background: #b91c1c;
+}
 button:disabled {
   opacity: 0.5;
   cursor: default;
