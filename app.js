@@ -119,7 +119,7 @@
     $('share').textContent = tr(sharing ? 'stop' : 'start');
     if (!$('draw-panel').hidden) renderPalette();
   }
-  let invite = new URLSearchParams(location.hash.slice(1)).get('invite');
+  let invite = new URLSearchParams(location.hash.slice(1)).get('invite') || new URLSearchParams(location.search).get('invite');
   const apiOrigin = window.SMALI_CONFIG?.apiOrigin || '';
   const separateAPI = !!apiOrigin && apiOrigin !== location.origin;
   const sessionKey = 'smali-session:' + apiOrigin;
