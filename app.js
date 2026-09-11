@@ -171,21 +171,10 @@
       attribution: 'Powered by <a href="https://www.esri.com/">Esri</a> | Source: <a href="https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">Esri, Vantor, Earthstar Geographics, and the GIS User Community</a>',
     },
   };
-  const labelPane = map.createPane('basemap-labels');
-  labelPane.style.zIndex = '350';
-  labelPane.style.pointerEvents = 'none';
-  let basemapLayer, basemapLabels;
+  let basemapLayer;
   function setBasemap(choice) {
     if (!Object.hasOwn(basemaps, choice)) choice = 'satellite';
     if (basemapLayer) map.removeLayer(basemapLayer);
-    if (basemapLabels) { map.removeLayer(basemapLabels); basemapLabels = null; }
-    if (choice === 'satellite') {
-      basemapLabels = L.esri.tiledMapLayer({
-        url: 'https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer',
-        pane: 'basemap-labels', maxZoom: 19,
-        attribution: 'Labels: Esri, HERE, Garmin, © OpenStreetMap contributors',
-      });
-    }
     const source = basemaps[choice];
     const layer = choice === 'satellite'
       ? L.esri.tiledMapLayer({url: source.url.replace('/tile/{z}/{y}/{x}', ''), maxZoom: 19, attribution: source.attribution, errorTileUrl: ''})
@@ -203,7 +192,6 @@
       layer.on('requesterror', fallback); // Esri metadata is required before tiles can load.
     }
     layer.addTo(map);
-    if (basemapLabels) basemapLabels.addTo(map);
     $('basemap').value = choice;
     try { store('smali-basemap-v2', choice); } catch {} // Private storage must not prevent switching.
   }
