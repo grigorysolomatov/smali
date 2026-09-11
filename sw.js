@@ -7,6 +7,7 @@ const SHELL = [
   '/config.js',
   '/style.css',
   '/vendor/leaflet.js',
+  '/vendor/esri-leaflet.js',
   '/vendor/leaflet.css',
   '/vendor/images/marker-icon.png',
   '/vendor/images/marker-icon-2x.png',

@@ -4,6 +4,8 @@
   const words = {
     en: {
       title: 'Sheep gathering',
+      basemap: 'Basemap', mapView: 'Map', satellite: 'Satellite',
+      satelliteUnavailable: 'Satellite unavailable. Showing Map.', retrySatellite: 'Retry satellite',
       done: 'Done', placeAction: 'Place',
       marker: 'Marker', drawing: 'Drawing',
       red:'Red', orange:'Orange', yellow:'Yellow', green:'Green', blue:'Blue', indigo:'Indigo', violet:'Violet',
@@ -39,6 +41,8 @@
     },
     is: {
       title: 'smali',
+      basemap: 'Bakgrunnskort', mapView: 'Kort', satellite: 'Gervihnöttur',
+      satelliteUnavailable: 'Gervihnattamyndir eru ekki tiltækar. Kort birt í staðinn.', retrySatellite: 'Reyna aftur',
       done: 'Lokið', placeAction: 'Setja',
       marker: 'Merki', drawing: 'Teikning',
       red:'Rauður', orange:'Appelsínugulur', yellow:'Gulur', green:'Grænn', blue:'Blár', indigo:'Indígó', violet:'Fjólublár',
@@ -74,6 +78,8 @@
     },
     da: {
       title: 'Fåresamling',
+      basemap: 'Baggrundskort', mapView: 'Kort', satellite: 'Satellit',
+      satelliteUnavailable: 'Satellit er ikke tilgængelig. Viser kort.', retrySatellite: 'Prøv satellit igen',
       done: 'Færdig', placeAction: 'Placér',
       marker: 'Mærke', drawing: 'Tegning',
       red:'Rød', orange:'Orange', yellow:'Gul', green:'Grøn', blue:'Blå', indigo:'Indigo', violet:'Violet',
@@ -155,11 +161,43 @@
     11,
   );
   L.control.zoom({ position: 'topright' }).addTo(map);
-  L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    maxZoom: 19,
-    attribution:
-      '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
-  }).addTo(map);
+  const basemaps = {
+    map: {
+      url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png',
+      attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
+    },
+    satellite: {
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
+      attribution: 'Powered by <a href="https://www.esri.com/">Esri</a> | Source: <a href="https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">Esri, Vantor, Earthstar Geographics, and the GIS User Community</a>',
+    },
+  };
+  let basemapLayer;
+  function setBasemap(choice) {
+    if (!Object.hasOwn(basemaps, choice)) choice = 'map';
+    if (basemapLayer) map.removeLayer(basemapLayer);
+    const source = basemaps[choice];
+    const layer = choice === 'satellite'
+      ? L.esri.tiledMapLayer({url: source.url.replace('/tile/{z}/{y}/{x}', ''), maxZoom: 19, attribution: source.attribution, errorTileUrl: ''})
+      : L.tileLayer(source.url, {maxZoom: 19, attribution: source.attribution});
+    basemapLayer = layer;
+    $('basemap-notice').hidden = true;
+    if (choice === 'satellite') {
+      let failures = 0;
+      const fallback = () => {
+        if (basemapLayer !== layer) return;
+        setBasemap('map'); // Remember the working fallback, including across reloads.
+        $('basemap-notice').hidden = false;
+      };
+      layer.on('tileerror', () => { if (++failures >= 3) fallback(); });
+      layer.on('requesterror', fallback); // Esri metadata is required before tiles can load.
+    }
+    layer.addTo(map);
+    $('basemap').value = choice;
+    try { store('smali-basemap', choice); } catch {} // Private storage must not prevent switching.
+  }
+  $('basemap').onchange = () => setBasemap($('basemap').value);
+  $('retry-satellite').onclick = () => setBasemap('satellite');
+  setBasemap(load('smali-basemap', 'map'));
   const features = L.layerGroup().addTo(map);
   const annotations = new Map();
   function annotation(key, item, create, update, content) {

@@ -371,6 +371,40 @@ input {
   height: 48px !important;
   line-height: 48px !important;
 }
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+#basemap-controls {
+  position: absolute;
+  top: calc(var(--map-top) + 10px);
+  left: 10px;
+  z-index: 550;
+  max-width: calc(100vw - 84px);
+}
+#basemap { max-width: 100%; box-shadow: 0 1px 5px #0004; }
+#basemap-notice {
+  margin-top: 6px;
+  padding: 8px;
+  max-width: 290px;
+  border: 1px solid #dbac50;
+  border-radius: 10px;
+  background: #fff2cd;
+  font-size: 14px;
+}
+#basemap-message { display: block; }
+#retry-satellite { margin-top: 6px; max-width: 100%; }
+/* Esri's default hover-to-expand credit is not usable on touch screens. */
+.leaflet-control-attribution.esri-truncated-attribution {
+  white-space: normal !important;
+  overflow: visible !important;
+  max-width: calc(100vw - 10px) !important;
+}
 .leaflet-control-attribution {
   font-size: 10px !important;
 }
