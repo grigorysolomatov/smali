@@ -326,8 +326,11 @@
       $('items-list').append(itemBox(m, false));
     }
     for (const d of data.drawings || []) {
-      annotation('d:'+d.id, d, () => L.polyline(d.strokes, {color:d.color,weight:6}),
-        layer => {layer.setLatLngs(d.strokes);layer.setStyle({color:d.color});}, () => itemBox(d,true));
+      annotation('d:'+d.id, d, () => L.featureGroup([
+        L.polyline(d.strokes, {color:d.color,weight:40,opacity:0,className:'drawing-hit'}),
+        L.polyline(d.strokes, {color:d.color,weight:6,interactive:false,className:'drawing-visible'}),
+      ]),
+        layer => layer.eachLayer(stroke => {stroke.setLatLngs(d.strokes);stroke.setStyle({color:d.color});}), () => itemBox(d,true));
       $('items-list').append(itemBox(d, true));
     }
     for (const [key,entry] of annotations) if (!entry.seen) {
