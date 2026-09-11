@@ -402,6 +402,12 @@ input {
 .leaflet-control-attribution {
   font-size: 10px !important;
 }
+.esri-truncated-attribution {
+  white-space: normal !important;
+  overflow: visible !important;
+  max-width: 100% !important;
+  text-overflow: clip !important;
+}
 .annotation-label span {
   width: max-content;
   max-width: 200px;
@@ -412,7 +418,7 @@ input {
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
-.official-place-label {
+.leaflet-tooltip.official-place-label {
   background: transparent;
   border: 0;
   box-shadow: none;
@@ -426,8 +432,8 @@ input {
   white-space: nowrap;
 }
 .official-place-label::before { display: none; }
-.official-place-label-0 { font-size: 14px; font-weight: 800; }
-.official-place-label-2 { font-size: 11px; font-weight: 650; }
+.leaflet-tooltip.official-place-label-0 { font-size: 14px; font-weight: 800; }
+.leaflet-tooltip.official-place-label-2 { font-size: 11px; font-weight: 650; }
 .leaflet-tooltip {
   font-size: 13px;
   font-weight: 650;

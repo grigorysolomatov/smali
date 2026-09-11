@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8" />
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://gis.natt.is https://tile.openstreetmap.org; connect-src 'self' https://raw-teenage-pillow-quick.trycloudflare.com; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://server.arcgisonline.com https://tile.openstreetmap.org; connect-src 'self' https://server.arcgisonline.com https://raw-teenage-pillow-quick.trycloudflare.com; object-src 'none'; base-uri 'none'; form-action 'self'" />
     <meta name="referrer" content="strict-origin-when-cross-origin" />
     <meta
       name="viewport"
@@ -32,11 +32,11 @@
       <label for="basemap" class="sr-only" data-i18n="basemap">Basemap</label>
       <select id="basemap">
         <option value="map" data-i18n="mapView">Map</option>
-        <option value="satellite" data-i18n="satellite">Iceland map</option>
+        <option value="satellite" data-i18n="satellite">Satellite</option>
       </select>
       <div id="basemap-notice" hidden>
-        <span id="basemap-message" role="status" data-i18n="satelliteUnavailable">Iceland map unavailable. Showing Map.</span>
-        <button id="retry-satellite" data-i18n="retrySatellite">Retry Iceland map</button>
+        <span id="basemap-message" role="status" data-i18n="satelliteUnavailable">Satellite unavailable. Showing Map.</span>
+        <button id="retry-satellite" data-i18n="retrySatellite">Retry Satellite</button>
       </div>
     </div>
     <section id="join-panel" class="sheet">
@@ -107,6 +107,7 @@
       ><button id="draw" disabled data-i18n="draw">Draw</button>
     </footer>
     <script src="./vendor/leaflet.js"></script>
+    <script src="./vendor/esri-leaflet.js"></script>
     <script src="./config.js"></script>
     <script src="./is50v-place-names.js"></script>
     <script src="./app.js"></script>

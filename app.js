@@ -4,14 +4,14 @@
   const words = {
     en: {
       title: 'Sheep gathering',
-      basemap: 'Basemap', mapView: 'Map', satellite: 'Iceland map',
-      satelliteUnavailable: 'Iceland map unavailable. Showing Map.', retrySatellite: 'Retry Iceland map',
+      basemap: 'Basemap', mapView: 'Map', satellite: 'Satellite',
+      satelliteUnavailable: 'Satellite unavailable. Showing Map.', retrySatellite: 'Retry Satellite',
       done: 'Done', placeAction: 'Place',
       marker: 'Marker', drawing: 'Drawing',
       red:'Red', orange:'Orange', yellow:'Yellow', green:'Green', blue:'Blue', indigo:'Indigo', violet:'Violet',
       welcome: 'Gather together',
       joinHelp:
-        'Open your group invite and enter your name. Location sharing is optional.',
+        'Enter your name to join. Location sharing is optional.',
       name: 'Your name',
       join: 'Join gathering',
       start: 'Start sharing',
@@ -41,14 +41,14 @@
     },
     is: {
       title: 'smali',
-      basemap: 'Bakgrunnskort', mapView: 'Kort', satellite: 'Íslandskort',
-      satelliteUnavailable: 'Íslandskort er ekki tiltækt. Kort birt í staðinn.', retrySatellite: 'Reyna Íslandskort aftur',
+      basemap: 'Bakgrunnskort', mapView: 'Kort', satellite: 'Gervihnattamynd',
+      satelliteUnavailable: 'Gervihnattamynd er ekki tiltækt. Kort birt í staðinn.', retrySatellite: 'Reyna Gervihnattamynd aftur',
       done: 'Lokið', placeAction: 'Setja',
       marker: 'Merki', drawing: 'Teikning',
       red:'Rauður', orange:'Appelsínugulur', yellow:'Gulur', green:'Grænn', blue:'Blár', indigo:'Indígó', violet:'Fjólublár',
       welcome: 'Saman í leit',
       joinHelp:
-        'Opnaðu boðið og sláðu inn nafnið þitt. Staðsetningardeiling er valfrjáls.',
+        'Sláðu inn nafnið þitt til að taka þátt. Staðsetningardeiling er valfrjáls.',
       name: 'Nafnið þitt',
       join: 'Taka þátt',
       start: 'Deila staðsetningu',
@@ -78,14 +78,14 @@
     },
     da: {
       title: 'Fåresamling',
-      basemap: 'Baggrundskort', mapView: 'Kort', satellite: 'Islandskort',
-      satelliteUnavailable: 'Islandskort er ikke tilgængeligt. Viser kort.', retrySatellite: 'Prøv Islandskort igen',
+      basemap: 'Baggrundskort', mapView: 'Kort', satellite: 'Satellit',
+      satelliteUnavailable: 'Satellit er ikke tilgængeligt. Viser kort.', retrySatellite: 'Prøv Satellit igen',
       done: 'Færdig', placeAction: 'Placér',
       marker: 'Mærke', drawing: 'Tegning',
       red:'Rød', orange:'Orange', yellow:'Gul', green:'Grøn', blue:'Blå', indigo:'Indigo', violet:'Violet',
       welcome: 'Sammen på kortet',
       joinHelp:
-        'Åbn invitationen og skriv dit navn. Deling af position er valgfri.',
+        'Skriv dit navn for at deltage. Deling af position er valgfri.',
       name: 'Dit navn',
       join: 'Deltag',
       start: 'Del position',
@@ -167,9 +167,8 @@
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     },
     satellite: {
-      url: 'https://gis.natt.is/mapcache/web-mercator/wms',
-      layers: 'grunnkort',
-      attribution: '© <a href="https://kort.lmi.is/">Náttúrufræðistofnun — Landmælingar Íslands</a> · <a href="https://www.natt.is/en/resources/geospatial-data/geographical-names">IS 50V Örnefni</a> (CC BY 4.0)',
+      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer',
+      attribution: '<a href="https://www.esri.com/">Powered by Esri</a> · Source: Esri, Vantor, Earthstar Geographics, and the GIS User Community',
     },
   };
   let basemapLayer;
@@ -178,7 +177,7 @@
     if (basemapLayer) map.removeLayer(basemapLayer);
     const source = basemaps[choice];
     const layer = choice === 'satellite'
-      ? L.tileLayer.wms(source.url, {layers:source.layers, format:'image/png', transparent:false, tiled:true, version:'1.3.0', maxZoom:16, attribution:source.attribution})
+      ? L.esri.tiledMapLayer({url:source.url, maxZoom:19, attribution:source.attribution})
       : L.tileLayer(source.url, {maxZoom:19, attribution:source.attribution});
     basemapLayer = layer;
     $('basemap-notice').hidden = true;
@@ -189,16 +188,17 @@
         setBasemap('map'); // Remember the working fallback, including across reloads.
         $('basemap-notice').hidden = false;
       };
+      layer.on('requesterror', fallback);
       layer.on('tileerror', () => { if (++failures >= 3) fallback(); });
     }
     layer.addTo(map);
     $('basemap').value = choice;
-    try { store('smali-basemap-v2', choice); } catch {} // Private storage must not prevent switching.
+    try { store('smali-basemap-v3', choice); } catch {} // Private storage must not prevent switching.
   }
   $('basemap').onchange = () => setBasemap($('basemap').value);
   $('retry-satellite').onclick = () => setBasemap('satellite');
   // One-time default update; subsequent manual choices and fallback remain remembered.
-  setBasemap(load('smali-basemap-v2', 'satellite'));
+  setBasemap(load('smali-basemap-v3', 'satellite'));
   const features = L.layerGroup().addTo(map);
   const annotations = new Map();
   function annotation(key, item, create, update, content) {
@@ -224,16 +224,29 @@
   officialLabelPane.style.zIndex = '350';
   officialLabelPane.style.pointerEvents = 'none';
   const officialLabels = L.layerGroup().addTo(map);
+  map.attributionControl.addAttribution('© <a href="https://kort.lmi.is/">Landmælingar Íslands</a> · <a href="https://www.natt.is/en/resources/geospatial-data/geographical-names">IS 50V Örnefni</a> (CC BY 4.0)');
   function renderOfficialLabels() {
     officialLabels.clearLayers();
     const names = Array.isArray(window.IS50V_PLACE_NAMES) ? window.IS50V_PLACE_NAMES : [];
     const zoom = map.getZoom();
-    if (zoom < 10 || !names.length) return;
+    if (zoom < 8 || !names.length) return;
     const bounds = map.getBounds().pad(0.08);
     const center = map.getCenter();
     const maximum = zoom <= 11 ? 36 : zoom === 12 ? 70 : zoom === 13 ? 120 : 180;
-    const maximumRank = zoom <= 12 ? 1 : 2;
+    const maximumRank = zoom <= 10 ? 0 : zoom <= 12 ? 1 : 2;
+    // The source ranks these settlements with minor features. Promote their
+    // official town points for the regional view; keep the first source point
+    // rather than also labelling the namesake Skagaströnd coastal region.
+    const towns = new Set(['Sauðárkrókur', 'Skagaströnd']);
+    const seenTowns = new Set();
     names
+      .filter(([, , name]) => {
+        if (!towns.has(name)) return true;
+        if (seenTowns.has(name)) return false;
+        seenTowns.add(name);
+        return true;
+      })
+      .map(([lat, lon, name, rank]) => [lat, lon, name, towns.has(name) ? 0 : rank])
       .filter(([lat, lon, , rank]) => rank <= maximumRank && bounds.contains([lat, lon]))
       .sort((a, b) => a[3] - b[3] || center.distanceTo([a[0], a[1]]) - center.distanceTo([b[0], b[1]]))
       .slice(0, maximum)
@@ -246,6 +259,7 @@
           fillOpacity: 0,
         });
         marker.bindTooltip(element('span', name), {
+          pane: 'official-place-labels',
           permanent: true,
           direction: 'center',
           interactive: false,
@@ -255,7 +269,7 @@
         officialLabels.addLayer(marker);
       });
   }
-  map.on('moveend zoomend', renderOfficialLabels);
+  map.on('moveend', renderOfficialLabels);
   renderOfficialLabels();
   function status(message) {
     $('status').textContent =
@@ -549,7 +563,7 @@
       render();
       status(
         e.status === 401
-          ? 'Join required — open your invite'
+          ? tr('joinHelp')
           : e.status === 409
             ? 'Conflict — your edit was not saved. Review latest.'
             : e.status
