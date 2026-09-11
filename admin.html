@@ -1,0 +1,35 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https://tile.openstreetmap.org; connect-src 'self' https://raw-teenage-pillow-quick.trycloudflare.com; object-src 'none'; base-uri 'none'; form-action 'self'" />
+    <meta name="referrer" content="no-referrer" />
+    <meta name="viewport" content="width=device-width,initial-scale=1" />
+    <meta name="theme-color" content="#173f36" />
+    <title>smali admin</title>
+    <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'&gt;&lt;text y='25' font-size='26'&gt;🐑&lt;/text&gt;&lt;/svg&gt;" />
+    <link rel="stylesheet" href="./admin.css" />
+  </head>
+  <body>
+    <header>
+      <div><p class="eyebrow">smali</p><h1>Active logins</h1></div>
+      <a href="./">Back to map</a>
+    </header>
+    <main>
+      <section class="intro">
+        <p>Each row is one persistent login. Kick revokes only that login immediately.</p>
+        <button id="refresh" type="button">Refresh</button>
+      </section>
+      <p id="status" role="status" aria-live="polite">Loading…</p>
+      <div id="sessions" class="sessions"></div>
+    </main>
+    <template id="session-row">
+      <article class="session">
+        <div><strong class="name"></strong><p class="details"></p></div>
+        <button class="kick" type="button">Kick</button>
+      </article>
+    </template>
+    <script src="./config.js"></script>
+    <script src="./admin.js"></script>
+  </body>
+</html>

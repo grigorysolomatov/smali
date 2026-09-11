@@ -30,10 +30,10 @@
       offline: 'Offline · cached positions',
       pending: 'pending',
       redraw: 'Redraw',
-      editNote: 'Edit note',
+      editNote: 'Edit',
       edit: 'Move',
-      deleteMarker: 'Delete marker',
-      deleteLine: 'Delete line',
+      deleteMarker: 'Delete',
+      deleteLine: 'Delete',
       stale: 'Stale',
       live: 'Live',
     },
@@ -65,10 +65,10 @@
       offline: 'Ótengt · vistaðar staðsetningar',
       pending: 'í bið',
       redraw: 'Teikna aftur',
-      editNote: 'Breyta athugasemd',
+      editNote: 'Breyta',
       edit: 'Færa',
-      deleteMarker: 'Eyða merki',
-      deleteLine: 'Eyða línu',
+      deleteMarker: 'Eyða',
+      deleteLine: 'Eyða',
       stale: 'Úrelt',
       live: 'Nýtt',
     },
@@ -100,10 +100,10 @@
       offline: 'Offline · gemte positioner',
       pending: 'afventer',
       redraw: 'Tegn igen',
-      editNote: 'Redigér note',
+      editNote: 'Redigér',
       edit: 'Flyt',
-      deleteMarker: 'Slet mærke',
-      deleteLine: 'Slet linje',
+      deleteMarker: 'Slet',
+      deleteLine: 'Slet',
       stale: 'Forældet',
       live: 'Aktuel',
     },
@@ -243,15 +243,17 @@
         `${item.author.name} → ${item.lastEditor.name} · v${item.version}`,
       ),
     );
+    const actions = element('div', '');
+    actions.className = 'item-actions';
     const note = element('button', tr('editNote'));
     note.onclick = () => editNote(item, isDrawing);
-    box.append(note);
+    actions.append(note);
     const edit = element('button', tr(isDrawing ? 'redraw' : 'edit'));
     edit.onclick = () => {
       $('group-panel').open = false;
       isDrawing ? beginDrawing(item) : editMarker(item);
     };
-    box.append(edit);
+    actions.append(edit);
     const del = element('button', tr(isDrawing ? 'deleteLine' : 'deleteMarker'));
     del.className = 'delete-item danger';
     del.disabled = pending.some((op) =>
@@ -268,7 +270,8 @@
         deleted: true,
       });
     };
-    box.append(del);
+    actions.append(del);
+    box.append(actions);
     return box;
   }
   function render() {
