@@ -4,8 +4,8 @@
   const words = {
     en: {
       title: 'Sheep gathering',
-      basemap: 'Basemap', mapView: 'Map', satellite: 'Satellite',
-      satelliteUnavailable: 'Satellite unavailable. Showing Map.', retrySatellite: 'Retry satellite',
+      basemap: 'Basemap', mapView: 'Map', satellite: 'Iceland map',
+      satelliteUnavailable: 'Iceland map unavailable. Showing Map.', retrySatellite: 'Retry Iceland map',
       done: 'Done', placeAction: 'Place',
       marker: 'Marker', drawing: 'Drawing',
       red:'Red', orange:'Orange', yellow:'Yellow', green:'Green', blue:'Blue', indigo:'Indigo', violet:'Violet',
@@ -41,8 +41,8 @@
     },
     is: {
       title: 'smali',
-      basemap: 'Bakgrunnskort', mapView: 'Kort', satellite: 'Gervihnöttur',
-      satelliteUnavailable: 'Gervihnattamyndir eru ekki tiltækar. Kort birt í staðinn.', retrySatellite: 'Reyna aftur',
+      basemap: 'Bakgrunnskort', mapView: 'Kort', satellite: 'Íslandskort',
+      satelliteUnavailable: 'Íslandskort er ekki tiltækt. Kort birt í staðinn.', retrySatellite: 'Reyna Íslandskort aftur',
       done: 'Lokið', placeAction: 'Setja',
       marker: 'Merki', drawing: 'Teikning',
       red:'Rauður', orange:'Appelsínugulur', yellow:'Gulur', green:'Grænn', blue:'Blár', indigo:'Indígó', violet:'Fjólublár',
@@ -78,8 +78,8 @@
     },
     da: {
       title: 'Fåresamling',
-      basemap: 'Baggrundskort', mapView: 'Kort', satellite: 'Satellit',
-      satelliteUnavailable: 'Satellit er ikke tilgængelig. Viser kort.', retrySatellite: 'Prøv satellit igen',
+      basemap: 'Baggrundskort', mapView: 'Kort', satellite: 'Islandskort',
+      satelliteUnavailable: 'Islandskort er ikke tilgængeligt. Viser kort.', retrySatellite: 'Prøv Islandskort igen',
       done: 'Færdig', placeAction: 'Placér',
       marker: 'Mærke', drawing: 'Tegning',
       red:'Rød', orange:'Orange', yellow:'Gul', green:'Grøn', blue:'Blå', indigo:'Indigo', violet:'Violet',
@@ -167,8 +167,9 @@
       attribution: '© <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors',
     },
     satellite: {
-      url: 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}',
-      attribution: 'Powered by <a href="https://www.esri.com/">Esri</a> | Source: <a href="https://www.arcgis.com/home/item.html?id=10df2279f9684e4a9f6a7f08febac2a9">Esri, Vantor, Earthstar Geographics, and the GIS User Community</a>',
+      url: 'https://gis.natt.is/mapcache/web-mercator/wms',
+      layers: 'grunnkort',
+      attribution: '© <a href="https://kort.lmi.is/">Náttúrufræðistofnun — Landmælingar Íslands</a> · <a href="https://www.natt.is/en/resources/geospatial-data/geographical-names">IS 50V Örnefni</a> (CC BY 4.0)',
     },
   };
   let basemapLayer;
@@ -177,8 +178,8 @@
     if (basemapLayer) map.removeLayer(basemapLayer);
     const source = basemaps[choice];
     const layer = choice === 'satellite'
-      ? L.esri.tiledMapLayer({url: source.url.replace('/tile/{z}/{y}/{x}', ''), maxZoom: 19, attribution: source.attribution, errorTileUrl: ''})
-      : L.tileLayer(source.url, {maxZoom: 19, attribution: source.attribution});
+      ? L.tileLayer.wms(source.url, {layers:source.layers, format:'image/png', transparent:false, tiled:true, version:'1.3.0', maxZoom:16, attribution:source.attribution})
+      : L.tileLayer(source.url, {maxZoom:19, attribution:source.attribution});
     basemapLayer = layer;
     $('basemap-notice').hidden = true;
     if (choice === 'satellite') {
@@ -189,7 +190,6 @@
         $('basemap-notice').hidden = false;
       };
       layer.on('tileerror', () => { if (++failures >= 3) fallback(); });
-      layer.on('requesterror', fallback); // Esri metadata is required before tiles can load.
     }
     layer.addTo(map);
     $('basemap').value = choice;
@@ -220,6 +220,43 @@
     e.textContent = text;
     return e;
   };
+  const officialLabelPane = map.createPane('official-place-labels');
+  officialLabelPane.style.zIndex = '350';
+  officialLabelPane.style.pointerEvents = 'none';
+  const officialLabels = L.layerGroup().addTo(map);
+  function renderOfficialLabels() {
+    officialLabels.clearLayers();
+    const names = Array.isArray(window.IS50V_PLACE_NAMES) ? window.IS50V_PLACE_NAMES : [];
+    const zoom = map.getZoom();
+    if (zoom < 10 || !names.length) return;
+    const bounds = map.getBounds().pad(0.08);
+    const center = map.getCenter();
+    const maximum = zoom <= 11 ? 36 : zoom === 12 ? 70 : zoom === 13 ? 120 : 180;
+    const maximumRank = zoom <= 12 ? 1 : 2;
+    names
+      .filter(([lat, lon, , rank]) => rank <= maximumRank && bounds.contains([lat, lon]))
+      .sort((a, b) => a[3] - b[3] || center.distanceTo([a[0], a[1]]) - center.distanceTo([b[0], b[1]]))
+      .slice(0, maximum)
+      .forEach(([lat, lon, name, rank]) => {
+        const marker = L.circleMarker([lat, lon], {
+          pane: 'official-place-labels',
+          interactive: false,
+          radius: 0,
+          opacity: 0,
+          fillOpacity: 0,
+        });
+        marker.bindTooltip(element('span', name), {
+          permanent: true,
+          direction: 'center',
+          interactive: false,
+          className: `official-place-label official-place-label-${rank}`,
+          opacity: 1,
+        });
+        officialLabels.addLayer(marker);
+      });
+  }
+  map.on('moveend zoomend', renderOfficialLabels);
+  renderOfficialLabels();
   function status(message) {
     $('status').textContent =
       message ||

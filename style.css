@@ -399,12 +399,6 @@ input {
 }
 #basemap-message { display: block; }
 #retry-satellite { margin-top: 6px; max-width: 100%; }
-/* Esri's default hover-to-expand credit is not usable on touch screens. */
-.leaflet-control-attribution.esri-truncated-attribution {
-  white-space: normal !important;
-  overflow: visible !important;
-  max-width: calc(100vw - 10px) !important;
-}
 .leaflet-control-attribution {
   font-size: 10px !important;
 }
@@ -418,6 +412,22 @@ input {
   -webkit-line-clamp: 2;
   overflow: hidden;
 }
+.official-place-label {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  color: #172033;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1.1;
+  padding: 1px 3px;
+  text-align: center;
+  text-shadow: -1px -1px 0 #fff, 1px -1px 0 #fff, -1px 1px 0 #fff, 1px 1px 0 #fff, 0 0 3px #fff;
+  white-space: nowrap;
+}
+.official-place-label::before { display: none; }
+.official-place-label-0 { font-size: 14px; font-weight: 800; }
+.official-place-label-2 { font-size: 11px; font-weight: 650; }
 .leaflet-tooltip {
   font-size: 13px;
   font-weight: 650;
