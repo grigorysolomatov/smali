@@ -325,6 +325,14 @@
     box.append(actions);
     return box;
   }
+  function annotationLabel(layer, text, offset = [0, 0]) {
+    const label = (text || '').trim();
+    if (!label) { layer.unbindTooltip(); return; }
+    const content = element('span', label);
+    if (layer.getTooltip()) layer.setTooltipContent(content);
+    else layer.bindTooltip(content, {permanent:true, direction:'top', interactive:false, className:'annotation-label', offset});
+    layer.openTooltip();
+  }
   function render() {
     renderConflicts();
     features.clearLayers();
@@ -383,7 +391,7 @@
     }
     for (const m of data.markers || []) {
       annotation('m:'+m.id, m, () => L.marker([m.lat,m.lon]),
-        layer => { const pin = element('span','');pin.className='annotation-pin';pin.style.backgroundColor=/^#[0-9a-f]{6}$/i.test(m.color) ? m.color : '#2563eb';layer.setIcon(L.divIcon({html:pin,className:'annotation-marker',iconSize:[48,48],iconAnchor:[24,40],popupAnchor:[0,-36]})); layer.setLatLng([m.lat,m.lon]); layer.bindTooltip(element('span',m.text || tr('marker'))); },
+        layer => { const pin = element('span','');pin.className='annotation-pin';pin.style.backgroundColor=/^#[0-9a-f]{6}$/i.test(m.color) ? m.color : '#2563eb';layer.setIcon(L.divIcon({html:pin,className:'annotation-marker',iconSize:[48,48],iconAnchor:[24,40],popupAnchor:[0,-36]})); layer.setLatLng([m.lat,m.lon]); annotationLabel(layer, m.text, [0, -32]); },
         () => itemBox(m,false));
       $('items-list').append(itemBox(m, false));
     }
@@ -392,7 +400,7 @@
         L.polyline(d.strokes, {color:d.color,weight:40,opacity:0,className:'drawing-hit'}),
         L.polyline(d.strokes, {color:d.color,weight:6,interactive:false,className:'drawing-visible'}),
       ]),
-        layer => layer.eachLayer(stroke => {stroke.setLatLngs(d.strokes);stroke.setStyle({color:d.color});}), () => itemBox(d,true));
+        layer => {layer.eachLayer(stroke => {stroke.setLatLngs(d.strokes);stroke.setStyle({color:d.color});});annotationLabel(layer, d.text);}, () => itemBox(d,true));
       $('items-list').append(itemBox(d, true));
     }
     for (const [key,entry] of annotations) if (!entry.seen) {

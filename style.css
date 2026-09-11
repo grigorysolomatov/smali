@@ -408,6 +408,16 @@ input {
 .leaflet-control-attribution {
   font-size: 10px !important;
 }
+.annotation-label span {
+  width: max-content;
+  max-width: 200px;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  overflow: hidden;
+}
 .leaflet-tooltip {
   font-size: 13px;
   font-weight: 650;
