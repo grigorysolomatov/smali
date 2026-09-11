@@ -236,6 +236,14 @@ input {
   font-size: 23px;
   text-shadow: 0 1px 3px #000;
 }
+@media (max-width: 380px) {
+  #drawing-palette, #note-palette {
+    display: grid;
+    grid-template-columns: repeat(4, 48px);
+    justify-content: space-between;
+    gap: 4px;
+  }
+}
 #drawing-palette button[aria-pressed='true'], #note-palette button[aria-pressed='true'] { border-color: #173f36; }
 #note-panel {
   position: fixed;
