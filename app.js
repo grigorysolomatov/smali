@@ -124,6 +124,7 @@
       .forEach((e) => (e.textContent = tr(e.dataset.i18n)));
     $('share').textContent = tr(sharing ? 'stop' : 'start');
     if (!$('draw-panel').hidden) renderPalette();
+    if (!$('note-panel').hidden) renderNotePalette();
   }
   let invite = new URLSearchParams(location.hash.slice(1)).get('invite') || new URLSearchParams(location.search).get('invite');
   const apiOrigin = window.SMALI_CONFIG?.apiOrigin || '';
@@ -495,10 +496,12 @@
     map.closePopup();
     if (m) map.panTo([m.lat, m.lon]);
     $('marker-panel').hidden = false;
+    $('add-marker').setAttribute('aria-expanded', 'true');
     $('crosshair').hidden = false;
   }
   function closeMarker() {
     $('marker-panel').hidden = true;
+    $('add-marker').setAttribute('aria-expanded', 'false');
     $('crosshair').hidden = true;
     editing = null;
   }
@@ -595,34 +598,37 @@
   };
   let drawingColor = '#b45309';
   const palette = [['#dc2626','red'],['#b45309','orange'],['#ca8a04','yellow'],['#15803d','green'],['#2563eb','blue'],['#4f46e5','indigo'],['#9333ea','violet']];
-  function renderNotePalette() {
-    $('note-palette').replaceChildren();
-    for (const [color,name] of palette) {
-      const b=element('button',color===$('note-color').value ? '✓' : '');
-      b.type='button';b.style.setProperty('--swatch',color);
-      b.setAttribute('aria-label',tr(name));b.setAttribute('aria-pressed',String(color===$('note-color').value));
-      b.onclick=()=>{$('note-color').value=color;renderNotePalette();};
-      $('note-palette').append(b);
-    }
-  }
-  function renderPalette() {
-    $('drawing-palette').replaceChildren();
+  // Both editors use the same in-place selection update, preserving keyboard focus.
+  function renderColorPalette(id, selectedColor, onChange) {
+    const container = $(id);
+    container.replaceChildren();
     for (const [color, name] of palette) {
-      const button = element('button', color === drawingColor ? '✓' : '');
-      button.type = 'button'; button.style.setProperty('--swatch', color);
+      const button = element('button', color === selectedColor ? '✓' : '');
+      button.type = 'button';
+      button.style.setProperty('--swatch', color);
       button.setAttribute('aria-label', tr(name));
-      button.setAttribute('aria-pressed', String(color === drawingColor));
+      button.setAttribute('aria-pressed', String(color === selectedColor));
       button.onclick = () => {
-        drawingColor = color;
-        for (const swatch of $('drawing-palette').children) {
+        for (const swatch of container.children) {
           const selected = swatch === button;
           swatch.setAttribute('aria-pressed', String(selected));
           swatch.textContent = selected ? '✓' : '';
         }
-        paintDraft();
+        onChange(color);
       };
-      $('drawing-palette').append(button);
+      container.append(button);
     }
+  }
+  function renderNotePalette() {
+    renderColorPalette('note-palette', $('note-color').value, color => {
+      $('note-color').value = color;
+    });
+  }
+  function renderPalette() {
+    renderColorPalette('drawing-palette', drawingColor, color => {
+      drawingColor = color;
+      paintDraft();
+    });
   }
   let drawing = null,
     strokes = [],
@@ -649,6 +655,7 @@
     drawingColor = d?.color || '#b45309';
     renderPalette();
     $('draw-panel').hidden = false;
+    $('draw').setAttribute('aria-expanded', 'true');
     $('draw-canvas').hidden = false;
     map.dragging.disable();
     map.touchZoom.disable();
@@ -658,6 +665,7 @@
   }
   function closeDrawing() {
     $('draw-panel').hidden = true;
+    $('draw').setAttribute('aria-expanded', 'false');
     $('draw-canvas').hidden = true;
     map.dragging.enable();
     map.touchZoom.enable();
@@ -765,8 +773,12 @@
     );
   };
   $('name').value = localStorage.getItem('name') || '';
+  const joinButton = $('join-form').querySelector('button[type="submit"]');
   $('join-form').onsubmit = async (e) => {
     e.preventDefault();
+    if (joinButton.disabled) return;
+    joinButton.disabled = true;
+    $('join-form').setAttribute('aria-busy', 'true');
     try {
       const joined = await api('/api/join', { invite: invite || '', name: $('name').value });
       if (separateAPI && joined.token && joined.expiresAt > Date.now()) {
@@ -779,6 +791,9 @@
       await sync();
     } catch (err) {
       status(err.message);
+    } finally {
+      joinButton.disabled = false;
+      $('join-form').setAttribute('aria-busy', 'false');
     }
   };
   $('language').value = language;
